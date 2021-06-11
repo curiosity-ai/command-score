@@ -5,6 +5,6 @@
         <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\CommandScore\CommandScore.csproj"/>
+        <ProjectReference Include="..\CommandScore\CommandScore.csproj" />
     </ItemGroup>
 </Project>

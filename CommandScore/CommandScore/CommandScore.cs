@@ -66,7 +66,7 @@ namespace CommandScore
         private static readonly Regex IS_SPACE_REGEXP    = new Regex("/[\\s-]/");
         private static readonly Regex COUNT_SPACE_REGEXP = new Regex("/[\\s-]/g");
 
-        private static double CommandScoreInner(string item, string abbreviation, string lowerString, string lowerAbbreviation, int stringIndex, int abbreviationIndex, Dictionary<string, double> memoizedResults)
+        private static double CommandScoreInner(string item, string abbreviation, string lowerString, string lowerAbbreviation, int stringIndex, int abbreviationIndex, Dictionary<(int, int), double> memoizedResults)
         {
 
             if (abbreviationIndex == abbreviation.Length)
@@ -79,14 +79,14 @@ namespace CommandScore
                 return PENALTY_NOT_COMPLETE;
             }
 
-            var memoizeKey = $"{stringIndex},{abbreviationIndex}";
+            var memoizeKey = (stringIndex, abbreviationIndex);
             if (memoizedResults.ContainsKey(memoizeKey))
             {
                 return memoizedResults[memoizeKey];
             }
 
             var abbreviationChar = lowerAbbreviation[abbreviationIndex];
-            var index = lowerString[stringIndex + abbreviationIndex];
+            var index = lowerString.IndexOf(abbreviationChar, stringIndex);
             double highScore = 0f;
 
             double score;
@@ -138,10 +138,10 @@ namespace CommandScore
 
                 }
 
-                if (score < SCORE_TRANSPOSITION &&
-                    (lowerString[index - 1] == lowerAbbreviation[abbreviationIndex + 1]) ||
-                    lowerAbbreviation[abbreviationIndex + 1] == lowerAbbreviation[abbreviationIndex] // allow duplicate letters. Ref #7428
-                 && lowerString[index - 1] != lowerAbbreviation[abbreviationIndex])
+                if (score < SCORE_TRANSPOSITION
+                 && (lowerString.CharAt(index - 1) == lowerAbbreviation.CharAt(abbreviationIndex + 1)
+                  || lowerAbbreviation[abbreviationIndex + 1] == lowerAbbreviation[abbreviationIndex] // allow duplicate letters. Ref #7428
+                  && lowerString.CharAt(index - 1) != lowerAbbreviation.CharAt(abbreviationIndex)))
                 {
 
                     transposedScore = CommandScoreInner(item, abbreviation, lowerString, lowerAbbreviation, index + 1, abbreviationIndex + 2, memoizedResults);
@@ -157,11 +157,17 @@ namespace CommandScore
                     highScore = score;
                 }
 
-                index = lowerString[abbreviationChar + index + 1];
+                index = lowerString.IndexOf(abbreviationChar, index + 1);
             }
 
             memoizedResults[memoizeKey] = highScore;
             return highScore;
+        }
+
+        private static string CharAt(this string term, int index)
+        {
+            if (term.Length >= index || index < 0) return "";
+            return term[index].ToString();
         }
 
         private static string FormatInput(string item)
@@ -176,7 +182,7 @@ namespace CommandScore
              * in the original, we used to do the lower-casing on each recursive call, but this meant that toLowerCase()
              * was the dominating cost in the algorithm, passing both is a little ugly, but considerably faster.
              */
-            return CommandScoreInner(item, abbreviation, FormatInput(item), FormatInput(abbreviation), 0, 0, new Dictionary<string, double>());
+            return CommandScoreInner(item, abbreviation, FormatInput(item), FormatInput(abbreviation), 0, 0, new Dictionary<(int, int), double>());
         }
     }
 }
