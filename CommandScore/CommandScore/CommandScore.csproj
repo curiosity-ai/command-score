@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <AssemblyName>cmdscore</AssemblyName>
+        <RootNamespace>CommandScore</RootNamespace>
+        <!--        <LangVersion>7.2</LangVersion>-->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <!--        <DebugType>None</DebugType>-->
+        <!--        <DebugSymbols>false</DebugSymbols>-->
+        <!--        <SkipResourcesExtraction>true</SkipResourcesExtraction>-->
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <Copyright>(c) Copyright 2020 Curiosity GmbH - all right reserved</Copyright>
+        <Company>Curiosity GmbH</Company>
+        <Authors>Curiosity GmbH</Authors>
+        <PackageProjectUrl>https://github.com/curiosity-ai/command-score</PackageProjectUrl>
+        <PackageId>CommandScore</PackageId>
+        <!--        <Description></Description>-->
+        <!--        <PackageTags>h5, HTML, UI</PackageTags>-->
+        <!--        <NoWarn>1701;1702;1591</NoWarn>-->
+        <!--        <PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+    </PropertyGroup>
+
+</Project>
