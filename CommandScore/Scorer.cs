@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace CommandScore
 {
-    public static class CommandScore
+    public static class Scorer
     {
         // The scores are arranged so that a continuous match of characters will
         // result in a total score of 1.
@@ -241,7 +241,7 @@ namespace CommandScore
         
         private static ObjectPool<Dictionary<long, float>> _pool = ObjectPool.Create(new DefaultPooledObjectPolicy<Dictionary<long, float>>());
         private static ObjectPool<StringBuilder> _poolSB = ObjectPool.Create(new StringBuilderPooledObjectPolicy() { MaximumRetainedCapacity = 2048, InitialCapacity = 64 });
-        public static float Score(string item, string candidate)
+        public static float For(string item, string candidate)
         {
             
             var dict = _pool.Get();

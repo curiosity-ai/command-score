@@ -1,0 +1,64 @@
+variables:
+  project:  './CommandScore/CommandScore.csproj'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+pool:
+  vmImage: 'windows-latest'
+
+trigger: 
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - CommandScore/*
+    - Build/*
+
+pr: none
+
+steps:
+
+- checkout: self
+  submodules: true
+  fetchDepth: 10
+
+- task: NuGetToolInstaller@1
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
+  inputs:
+    packageType: sdk
+    version: 5.0.203
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: DotNetCoreCLI@2
+  displayName: 'restore nuget'
+  inputs:
+    command: 'restore'
+    projects: '$(project)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'build'
+  inputs:
+    command: 'build'
+    projects: '$(project)'
+    arguments: '-c $(buildConfiguration) /p:Version=1.0.$(build.buildId)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'pack nuget'
+  inputs:
+    command: 'pack'
+    configuration: '$(buildConfiguration)'
+    packagesToPack: '$(project)'
+    versioningScheme: 'off'
+    buildProperties: 'Version="1.0.$(build.buildId)"'
+
+- task: NuGetCommand@2
+  displayName: 'push nuget'
+  inputs:
+    command: 'push'
+    packagesToPush: '**/CommandScore.1.0.$(build.buildId).nupkg'
+
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'nuget-curiosity'

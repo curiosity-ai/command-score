@@ -1,31 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
-        <AssemblyName>cmdscore</AssemblyName>
-        <RootNamespace>CommandScore</RootNamespace>
-        <!--        <LangVersion>7.2</LangVersion>-->
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <!--        <DebugType>None</DebugType>-->
-        <!--        <DebugSymbols>false</DebugSymbols>-->
-        <!--        <SkipResourcesExtraction>true</SkipResourcesExtraction>-->
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+    <AssemblyName>CommandScore</AssemblyName>
+    <RootNamespace>CommandScore</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputType>Library</OutputType>
+    <Version>0.0.46</Version>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-        <Copyright>(c) Copyright 2020 Curiosity GmbH - all right reserved</Copyright>
-        <Company>Curiosity GmbH</Company>
-        <Authors>Curiosity GmbH</Authors>
-        <PackageProjectUrl>https://github.com/curiosity-ai/command-score</PackageProjectUrl>
-        <PackageId>CommandScore</PackageId>
-        <!--        <Description></Description>-->
-        <!--        <PackageTags>h5, HTML, UI</PackageTags>-->
-        <!--        <NoWarn>1701;1702;1591</NoWarn>-->
-        <!--        <PackageLicenseExpression>MIT</PackageLicenseExpression>-->
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>CommandScore</PackageId>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>C# port of the javascript command fuzzy matching library: https://github.com/superhuman/command-score</Description>
+    <PackageTags>String matching, Fuzzy matching</PackageTags>
+    <Authors>Curiosity GmbH</Authors>
+    <Company>Curiosity GmbH</Company>
+    <Copyright>(c) Copyright 2020 Curiosity GmbH - all right reserved</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.7" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.7" />
+  </ItemGroup>
 
 </Project>
