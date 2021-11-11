@@ -1,6 +1,9 @@
 Yet another C# fuzzy string matching library!
 
-This is a C# port of the Superhuman [command-score](https://github.com/superhuman/command-score) fuzzy matching library.
+This is a C# port of the Superhuman [command-score](https://github.com/superhuman/command-score) fuzzy matching library. 
+
+It has been rewritten to use [Span<char>](https://www.stevejgordon.co.uk/an-introduction-to-optimising-code-using-span-t) to minimize allocations, and is about 5x faster single-threaded when compared to the original Javascript code.
+
 
 # Installation
 

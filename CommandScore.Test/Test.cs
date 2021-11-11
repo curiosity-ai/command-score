@@ -19,13 +19,15 @@ namespace CommandScore.Test
 
         static void Main()
         {
-            int N = 1000000;
+            int N = 100_000;
             var sw = Stopwatch.StartNew();
+            var swTotal = Stopwatch.StartNew();
+
             for (int i = 0; i < N; i++)
             {
-                if (i % 1000 == 0)
+                if (i % 1000 == 0 && i > 0)
                 {
-                    Console.WriteLine($"At {i:n0} of {N:n0} \t {20*1000 / sw.Elapsed.TotalSeconds:n0} calls/s");
+                    Console.WriteLine($"At {i:n0} of {N:n0} \t {30*1000 / sw.Elapsed.TotalSeconds:n0} calls/s");
                     sw.Restart();
                 }
 
@@ -88,6 +90,8 @@ namespace CommandScore.Test
                 // should score long strings quickly
                 Assert(Math.Abs(Scorer.For("go to this is a really long label that is really longthis is a really long label that is really longthis is a really long label that is really longthis is a really long label that is really long", "this is a") - 0.891) < TOLERANCE, "should score long strings quickly");
             }
+
+            Console.WriteLine($"Finished in {swTotal.Elapsed.TotalSeconds:n1} seconds or {30 * N / swTotal.Elapsed.TotalSeconds:n0} calls/s");
 
             if (anyFailed)
             {
