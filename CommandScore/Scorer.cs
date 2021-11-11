@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.ObjectPool;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -95,7 +96,8 @@ namespace CommandScore
         {
             return (long)left << 32 | (long)(uint)right;
         }
-        private static float CommandScoreInner(string item, string candidate, string lowerItem, string lowerCandidate, int itemIndex, int candidateIndex, Dictionary<long, float> memoizedResults)
+
+        private static float CommandScoreInner(ReadOnlySpan<char> item, ReadOnlySpan<char> candidate, ReadOnlySpan<char> lowerItem, ReadOnlySpan<char> lowerCandidate, int itemIndex, int candidateIndex, Dictionary<long, float> memoizedResults)
         {
             if (candidateIndex == candidate.Length)
             {
@@ -115,7 +117,11 @@ namespace CommandScore
             }
 
             var candidateChar = lowerCandidate[candidateIndex];
-            var index = lowerItem.IndexOf(candidateChar, itemIndex);
+
+            int startAt = itemIndex;
+            int index = lowerItem.Slice(startAt).IndexOf(candidateChar);
+            if (index >= 0) index += startAt;
+
             float highScore = 0f;
 
             float score;
@@ -123,8 +129,8 @@ namespace CommandScore
 
             while (index >= 0)
             {
-
                 score = CommandScoreInner(item, candidate, lowerItem, lowerCandidate, index + 1, candidateIndex + 1, memoizedResults);
+
                 if (score > highScore)
                 {
                     if (index == itemIndex)
@@ -134,7 +140,7 @@ namespace CommandScore
                     else if (IsGap.Contains(item[index - 1]))
                     {
                         score *= SCORE_NON_SPACE_WORD_JUMP;
-                        var countGaps = CountGaps(item.AsSpan(itemIndex, index - 1 - itemIndex));
+                        var countGaps = CountGaps(item.Slice(itemIndex, index - 1 - itemIndex));
                         if (countGaps > 0 && itemIndex > 0)
                         {
                             score *= MathF.Pow(PENALTY_SKIPPED, countGaps);
@@ -143,7 +149,7 @@ namespace CommandScore
                     else if (char.IsWhiteSpace(item[index - 1]))
                     {
                         score *= SCORE_SPACE_WORD_JUMP;
-                        var spaceBreaks = CountSpaces(item.AsSpan(itemIndex, index - 1 - itemIndex));
+                        var spaceBreaks = CountSpaces(item.Slice(itemIndex, index - 1 - itemIndex));
                         if (spaceBreaks>0 && itemIndex > 0)
                         {
                             score *= MathF.Pow(PENALTY_SKIPPED, spaceBreaks);
@@ -162,7 +168,6 @@ namespace CommandScore
                     {
                         score *= PENALTY_CASE_MISMATCH;
                     }
-
                 }
 
                 if (score < SCORE_TRANSPOSITION
@@ -184,15 +189,18 @@ namespace CommandScore
                     highScore = score;
                 }
 
-                index = lowerItem.IndexOf(candidateChar, index + 1);
+                startAt = index + 1;
+                index = lowerItem.Slice(startAt).IndexOf(candidateChar);
+                if (index >= 0) index += startAt;
             }
 
             memoizedResults[memoizeKey] = highScore;
+
             return highScore;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CharMatch(string left, int indexLeft, string right, int indexRight)
+        private static bool CharMatch(ReadOnlySpan<char> left, int indexLeft, ReadOnlySpan<char> right, int indexRight)
         {
             if (indexLeft < 0 || indexLeft > left.Length) return false;
             if (indexRight < 0 || indexRight > right.Length) return false;
@@ -200,53 +208,55 @@ namespace CommandScore
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CharMismatch(string left, int indexLeft, string right, int indexRight)
+        private static bool CharMismatch(ReadOnlySpan<char> left, int indexLeft, ReadOnlySpan<char> right, int indexRight)
         {
             if (indexLeft < 0 || indexLeft > left.Length) return false;
             if (indexRight < 0 || indexRight > right.Length) return false;
             return left[indexLeft] != right[indexRight];
         }
 
-        private static string FormatInput(string item)
+        private static ReadOnlySpan<char> FormatInput(ReadOnlySpan<char> item, Span<char> formatedItem)
         {
+            // convert all valid space characters to space so they match each other
             var culture = CultureInfo.CurrentUICulture;
-            bool changed = false;
-            var sb = _poolSB.Get();
+            
+            int index = 0;
+
             foreach(var c in item)
             {
                 if (char.IsWhiteSpace(c) || c == '-')
                 {
-                    sb.Append(' ');
-                    if(c != ' ')
-                    {
-                        changed = true;
-                    }
+                    formatedItem[index] = ' ';
+                    index++;
                 }
                 else
                 {
                     var newC = char.ToLower(c, culture);
-                    sb.Append(newC);
-                    if (c != newC) changed = true;
+                    formatedItem[index] = newC;
+                    index++;
                 }
             }
-            
-            if (!changed) return item;
-
-            // convert all valid space characters to space so they match each other
-            var final = sb.ToString();
-            _poolSB.Return(sb);
-            return final;
+            return formatedItem.Slice(0, index);
         }
 
         
         private static ObjectPool<Dictionary<long, float>> _pool = ObjectPool.Create(new DefaultPooledObjectPolicy<Dictionary<long, float>>());
-        private static ObjectPool<StringBuilder> _poolSB = ObjectPool.Create(new StringBuilderPooledObjectPolicy() { MaximumRetainedCapacity = 2048, InitialCapacity = 64 });
-        public static float For(string item, string candidate)
+        public static float For(ReadOnlySpan<char> item, ReadOnlySpan<char> candidate)
         {
+            char[] pooledItem            = (item.Length      > 512) ? ArrayPool<char>.Shared.Rent(item.Length)      : null;
+            char[] pooledCandidate       = (candidate.Length > 512) ? ArrayPool<char>.Shared.Rent(candidate.Length) : null;
             
+            Span<char> formatedItem      = pooledItem      is not null ? pooledItem      : stackalloc char[item.Length];
+            Span<char> formatedCandidate = pooledCandidate is not null ? pooledCandidate : stackalloc char[candidate.Length];
+
             var dict = _pool.Get();
-            var score = CommandScoreInner(item, candidate, FormatInput(item), FormatInput(candidate), 0, 0, dict);
+            var score = CommandScoreInner(item, candidate, FormatInput(item, formatedItem), FormatInput(candidate, formatedCandidate), 0, 0, dict);
+            dict.Clear();
             _pool.Return(dict);
+
+            if (pooledItem      is not null) ArrayPool<char>.Shared.Return(pooledItem);
+            if (pooledCandidate is not null) ArrayPool<char>.Shared.Return(pooledCandidate);
+
             return score;
         }
     }

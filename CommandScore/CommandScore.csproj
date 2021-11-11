@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net5.0;net6.0</TargetFrameworks>
     <AssemblyName>CommandScore</AssemblyName>
     <RootNamespace>CommandScore</RootNamespace>
     <LangVersion>latest</LangVersion>
@@ -19,7 +19,7 @@
     <PackageTags>String matching, Fuzzy matching</PackageTags>
     <Authors>Curiosity GmbH</Authors>
     <Company>Curiosity GmbH</Company>
-    <Copyright>(c) Copyright 2020 Curiosity GmbH - all right reserved</Copyright>
+    <Copyright>(c) Copyright 2021 Curiosity GmbH - all right reserved</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
