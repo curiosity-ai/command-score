@@ -246,8 +246,8 @@ namespace CommandScore
             char[] pooledItem            = (item.Length      > 512) ? ArrayPool<char>.Shared.Rent(item.Length)      : null;
             char[] pooledCandidate       = (candidate.Length > 512) ? ArrayPool<char>.Shared.Rent(candidate.Length) : null;
             
-            Span<char> formatedItem      = pooledItem      is not null ? pooledItem      : stackalloc char[item.Length];
-            Span<char> formatedCandidate = pooledCandidate is not null ? pooledCandidate : stackalloc char[candidate.Length];
+            Span<char> formatedItem      = pooledItem      is not null ? pooledItem.AsSpan(0, item.Length)   : stackalloc char[item.Length];
+            Span<char> formatedCandidate = pooledCandidate is not null ? pooledCandidate.AsSpan(0, candidate.Length) : stackalloc char[candidate.Length];
 
             var dict = _pool.Get();
             var score = CommandScoreInner(item, candidate, FormatInput(item, formatedItem), FormatInput(candidate, formatedCandidate), 0, 0, dict);
