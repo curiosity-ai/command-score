@@ -71,6 +71,5 @@ steps:
   inputs:
     command: 'push'
     packagesToPush: '**/CommandScore.$(targetVersion).nupkg'
-
     nuGetFeedType: 'external'
-    publishFeedCredentials: 'nuget-curiosity'
+    publishFeedCredentials: 'nuget-curiosity-org'
