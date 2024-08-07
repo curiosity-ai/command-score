@@ -2,6 +2,7 @@ variables:
   project:  './CommandScore/CommandScore.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  targetVersion: yy.M.$(build.buildId)
 
 pool:
   vmImage: 'windows-latest'
@@ -29,8 +30,19 @@ steps:
   displayName: 'Use .NET Core sdk'
   inputs:
     packageType: sdk
-    version: 6.0.100
+    version: 8.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: PowerShell@2
+  displayName: 'Create CalVer Version'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $dottedDate = (Get-Date).ToString("yy.M")
+      $buildID = $($env:BUILD_BUILDID) 
+      $newTargetVersion = "$dottedDate.$buildID"
+      Write-Host "##vso[task.setvariable variable=targetVersion;]$newTargetVersion"
+      Write-Host "Updated targetVersion to '$newTargetVersion'"
 
 - task: DotNetCoreCLI@2
   displayName: 'restore nuget'
@@ -43,7 +55,7 @@ steps:
   inputs:
     command: 'build'
     projects: '$(project)'
-    arguments: '-c $(buildConfiguration) /p:Version=1.0.$(build.buildId)'
+    arguments: '-c $(buildConfiguration) /p:Version=$(targetVersion)'
 
 - task: DotNetCoreCLI@2
   displayName: 'pack nuget'
@@ -52,13 +64,13 @@ steps:
     configuration: '$(buildConfiguration)'
     packagesToPack: '$(project)'
     versioningScheme: 'off'
-    buildProperties: 'Version="1.0.$(build.buildId)"'
+    buildProperties: 'Version="$(targetVersion)"'
 
 - task: NuGetCommand@2
   displayName: 'push nuget'
   inputs:
     command: 'push'
-    packagesToPush: '**/CommandScore.1.0.$(build.buildId).nupkg'
+    packagesToPush: '**/CommandScore.$(targetVersion).nupkg'
 
     nuGetFeedType: 'external'
     publishFeedCredentials: 'nuget-curiosity'
